@@ -8,4 +8,5 @@ type User struct {
 	Name   string `gorm:"size:255;"`
 	Author []Item //things that the user has posted to sell on the platform
 	Owns   []Item `gorm:"foreignKey:CurrentOwnerID"`
+	Coins  float32
 }

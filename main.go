@@ -22,6 +22,7 @@ func RunRouter() {
 	UserRoute.GET("/", controllers.AllUsers)
 	UserRoute.POST("/", controllers.AddUser)
 	UserRoute.POST("/update", controllers.UpdateUser)
+	UserRoute.POST("/buycoins", controllers.UpdateCoins)
 	//TODO: make route protected
 	ItemRoute := router.Group("/api/item")
 

@@ -9,10 +9,11 @@ import (
 )
 
 type Itemdata struct {
-	AuthorID    uint   `json:"author_id" binding:"required"`
-	Name        string `json:"name" binding:"required"`
-	Description string `json:"desc"`
-	Tag         string `json:"tag" binding:"required"`
+	AuthorID    uint    `json:"author_id" binding:"required"`
+	Name        string  `json:"name" binding:"required"`
+	Description string  `json:"desc"`
+	Price       float32 `json:"price" binding:"required"`
+	Tag         string  `json:"tag" binding:"required"`
 }
 
 type BuyItemData struct {
@@ -29,8 +30,33 @@ func BuyItem(c *gin.Context) {
 		return
 	}
 
+	user := models.User{}
+	if err := services.DB.Where("id = ?", buyItemData.UserID).Find(&user).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
 	item := models.Item{}
-	//item.CurrentOwnerID = buyItemData.UserID
+	if err := services.DB.Where("id = ?", buyItemData.ItemID).Find(&item).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	coins := user.Coins - item.Price
+	if coins < 0 {
+		c.JSON(http.StatusForbidden, gin.H{
+			"error": "insufficient balance",
+		})
+		return
+	}
+	if err := services.DB.Where("id = ?", buyItemData.UserID).Find(&user).Update("coins", coins).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
 	if err := services.DB.Where("id = ?", buyItemData.ItemID).Find(&item).Update("current_owner_id", buyItemData.UserID).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
@@ -57,6 +83,7 @@ func CreateItem(c *gin.Context) {
 	item.Description = itemData.Description
 	item.Tag = itemData.Tag
 	item.CurrentOwnerID = itemData.AuthorID
+	item.Price = itemData.Price
 	if err := services.DB.Create(&item).Error; err != nil {
 		c.JSON(http.StatusConflict, gin.H{
 			"error": err.Error(),

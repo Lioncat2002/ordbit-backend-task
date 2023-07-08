@@ -25,7 +25,7 @@ func ConnectDatabase() {
 		log.Println("connected to database")
 	}
 	//DB.Statement.Delete(&models.User{}, &models.Post{})
-	//DB.Exec("DELETE FROM posts")
+	//DB.Exec("DELETE FROM items")
 	//DB.Exec("DELETE FROM users")
 	//DB.Delete(&[]models.User{}, &[]models.Post{}).Where("1=1")
 	DB.AutoMigrate(&models.User{}, &models.Item{})

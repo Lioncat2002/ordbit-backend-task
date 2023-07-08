@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"net/http"
 	"zappin/models"
 	"zappin/services"
@@ -18,7 +17,10 @@ type UserData struct {
 	Name string `json:"name" binding:"required"`
 }
 
-//TODO: remove this endpoint before deployment to prduction
+type AddCoin struct {
+	UserID uint    `json:"user_id" binding:"required"`
+	Coin   float32 `json:"coin" binding:"required"`
+}
 
 func AllUsers(c *gin.Context) {
 	var users []models.User
@@ -59,6 +61,35 @@ func AddUser(c *gin.Context) {
 	})
 }
 
+func UpdateCoins(c *gin.Context) {
+	var data AddCoin
+	if err := c.ShouldBindJSON(&data); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	user := models.User{}
+	if err := services.DB.Where("id = ?", data.UserID).Find(&user).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	coins := user.Coins + data.Coin
+	if err := services.DB.Where("id = ?", data.UserID).Find(&user).Update("coins", coins).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+	c.JSON(http.StatusAccepted, gin.H{
+		"status": "success",
+		"data":   user,
+	})
+
+}
+
 func UpdateUser(c *gin.Context) {
 	var data UserData
 	if err := c.ShouldBindJSON(&data); err != nil {
@@ -68,7 +99,6 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 	user := models.User{}
-	fmt.Println(data.ID)
 	if err := services.DB.Where("id = ?", data.ID).Find(&user).Update("name", data.Name).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
