@@ -3,7 +3,7 @@ package controllers
 import (
 	"backend/models"
 	"backend/services"
-	"fmt"
+	"backend/utils/token"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -14,13 +14,13 @@ type UserSignUpData struct {
 }
 
 type UserData struct {
-	ID   uint   `json:"id" binding:"required"`
+	//ID   uint   `json:"id" binding:"required"`
 	Name string `json:"name" binding:"required"`
 }
 
 type AddCoin struct {
-	UserID uint    `json:"user_id" binding:"required"`
-	Coin   float32 `json:"coin" binding:"required"`
+	//UserID uint    `json:"user_id" binding:"required"`
+	Coin float32 `json:"coin" binding:"required"`
 }
 
 func AllUsers(c *gin.Context) {
@@ -39,9 +39,16 @@ func AllUsers(c *gin.Context) {
 }
 
 func GetOneUser(c *gin.Context) {
-	id := c.Param("id")
-	fmt.Println("id", id)
+	//id := c.Param("id")
+	//fmt.Println("id", id)
 	//id, _ := strconv.ParseInt(query, 10, 32)
+	id, err := token.ExtractID(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
 	user := models.User{}
 	if err := services.DB.Where("id = ?", id).Preload("Author").Preload("Owns").First(&user).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -67,21 +74,36 @@ func AddUser(c *gin.Context) {
 	user := models.User{}
 	user.Email = data.Email
 	//user.Owned = []models.Item{}
+
 	if err := services.DB.Create(&user).Error; err != nil {
 		c.JSON(http.StatusConflict, gin.H{
 			"error": err.Error(),
 		})
 		return
 	}
-
+	token, err := token.GenerateToken(user.ID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
 	c.JSON(http.StatusOK, gin.H{
 		"status": "success",
-		"data":   user,
+		"data":   token,
 	})
 }
 
 func UpdateCoins(c *gin.Context) {
 	var data AddCoin
+	//getting data from the jwt token
+	id, err := token.ExtractID(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
 	if err := c.ShouldBindJSON(&data); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
@@ -89,14 +111,14 @@ func UpdateCoins(c *gin.Context) {
 		return
 	}
 	user := models.User{}
-	if err := services.DB.Where("id = ?", data.UserID).Find(&user).Error; err != nil {
+	if err := services.DB.Where("id = ?", id).Find(&user).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
 		})
 		return
 	}
 	coins := user.Coins + data.Coin
-	if err := services.DB.Where("id = ?", data.UserID).Find(&user).Update("coins", coins).Error; err != nil {
+	if err := services.DB.Where("id = ?", id).Find(&user).Update("coins", coins).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
 		})
@@ -111,6 +133,14 @@ func UpdateCoins(c *gin.Context) {
 
 func UpdateUser(c *gin.Context) {
 	var data UserData
+	//getting data from the jwt token
+	id, err := token.ExtractID(c)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
 	if err := c.ShouldBindJSON(&data); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
@@ -118,7 +148,7 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 	user := models.User{}
-	if err := services.DB.Where("id = ?", data.ID).Find(&user).Update("name", data.Name).Error; err != nil {
+	if err := services.DB.Where("id = ?", id).Find(&user).Update("name", data.Name).Error; err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
 		})

@@ -20,11 +20,12 @@ func RunRouter() {
 
 	UserRoute := router.Group("/api/user")
 	UserRoute.GET("/", controllers.AllUsers)
+	//TODO: add JWT auth
 	UserRoute.GET("/:id", controllers.GetOneUser)
 	UserRoute.POST("/", controllers.AddUser)
 	UserRoute.POST("/update", controllers.UpdateUser)
 	UserRoute.POST("/buycoins", controllers.UpdateCoins)
-	//TODO: make route protected
+
 	ItemRoute := router.Group("/api/item")
 
 	ItemRoute.GET("/", controllers.AllItems)
