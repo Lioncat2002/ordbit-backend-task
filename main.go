@@ -1,8 +1,8 @@
 package main
 
 import (
-	"zappin/controllers"
-	"zappin/services"
+	"backend/controllers"
+	"backend/services"
 
 	"github.com/gin-gonic/gin"
 )

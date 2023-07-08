@@ -1,10 +1,10 @@
 package controllers
 
 import (
+	"backend/models"
+	"backend/services"
 	"fmt"
 	"net/http"
-	"zappin/models"
-	"zappin/services"
 
 	"github.com/gin-gonic/gin"
 )

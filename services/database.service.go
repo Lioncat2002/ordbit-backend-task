@@ -1,9 +1,9 @@
 package services
 
 import (
+	"backend/models"
 	"log"
 	"os"
-	"zappin/models"
 
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
