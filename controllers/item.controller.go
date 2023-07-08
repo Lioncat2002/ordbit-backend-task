@@ -97,6 +97,22 @@ func CreateItem(c *gin.Context) {
 	})
 }
 
+func GetOneItem(c *gin.Context) {
+	id := c.Param("id")
+	item := models.Item{}
+	if err := services.DB.Where("id = ?", id).First(&item).Error; err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusAccepted, gin.H{
+		"status": "success",
+		"data":   item,
+	})
+}
+
 func AllItems(c *gin.Context) {
 	var items []models.Item
 	if err := services.DB.Find(&items).Error; err != nil {

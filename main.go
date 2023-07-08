@@ -20,6 +20,7 @@ func RunRouter() {
 
 	UserRoute := router.Group("/api/user")
 	UserRoute.GET("/", controllers.AllUsers)
+	UserRoute.GET("/:id", controllers.GetOneUser)
 	UserRoute.POST("/", controllers.AddUser)
 	UserRoute.POST("/update", controllers.UpdateUser)
 	UserRoute.POST("/buycoins", controllers.UpdateCoins)
@@ -27,6 +28,7 @@ func RunRouter() {
 	ItemRoute := router.Group("/api/item")
 
 	ItemRoute.GET("/", controllers.AllItems)
+	ItemRoute.GET("/:id", controllers.GetOneItem)
 	ItemRoute.POST("/", controllers.CreateItem)
 	ItemRoute.POST("/buy", controllers.BuyItem)
 
